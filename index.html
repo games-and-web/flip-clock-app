@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -93,25 +92,10 @@
         updateClock();
 
         function handleOrientationChange() {
-            if (window.matchMedia("(orientation: landscape)").matches) {
+            if (window.matchMedia("(orientation: landscape)").matches) {o
                 // Landscape mode
                 if (screenfull.isEnabled) {
                     screenfull.request();
                 }
                 defaultView.style.display = 'none';
                 clockView.style.display = 'flex';
-            } else {
-                // Portrait mode
-                if (screenfull.isEnabled) {
-                    screenfull.exit();
-                }
-                defaultView.style.display = 'flex';
-                clockView.style.display = 'none';
-            }
-        }
-
-        window.addEventListener('orientationchange', handleOrientationChange);
-        window.addEventListener('load', handleOrientationChange);
-    </script>
-</body>
-</html>
