@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flip Clock</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: black;
+            color: white;
+            font-family: sans-serif;
+            text-align: center;
+        }
+        .default-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .clock-view {
+            display: none;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+        }
+        .slider-container input {
+            margin-left: 10px;
+        }
+        .flip-clock {
+            font-size: 6rem;
+            display: flex;
+        }
+        .flip-clock div {
+            margin: 0 10px;
+        }
+        @keyframes flip {
+            0% { transform: rotateX(0); }
+            50% { transform: rotateX(180deg); }
+            100% { transform: rotateX(0); }
+        }
+        .flip {
+            animation: flip 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="default-view">
+        <p style="font-size: 12px;">Put your phone sideways</p>
+        <div class="slider-container">
+            <label for="brightness-slider"><img src="https://cdn-icons-png.flaticon.com/512/169/169367.png" alt="Brightness Icon" width="20"></label>
+            <input type="range" id="brightness-slider" min="0" max="255" value="255">
+        </div>
+    </div>
+    <div class="clock-view">
+        <div class="flip-clock">
+            <div id="hours">00</div>:<div id="minutes">00</div> <div id="ampm">AM</div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/screenfull.js/5.1.0/screenfull.min.js"></script>
+    <script>
+        let brightnessSlider = document.getElementById('brightness-slider');
+        let defaultView = document.querySelector('.default-view');
+        let clockView = document.querySelector('.clock-view');
+        let hoursDiv = document.getElementById('hours');
+        let minutesDiv = document.getElementById('minutes');
+        let ampmDiv = document.getElementById('ampm');
+        
+        brightnessSlider.addEventListener('input', function() {
+            let brightnessValue = brightnessSlider.value;
+            document.body.style.color = `rgb(${brightnessValue}, ${brightnessValue}, ${brightnessValue})`;
+        });
+
+        function updateClock() {
+            let now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            let ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            hoursDiv.textContent = hours;
+            minutesDiv.textContent = minutes;
+            ampmDiv.textContent = ampm;
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function handleOrientation(event) {
+            if (window.screen.orientation.angle === 90 || window.screen.orientation.angle === -90) {
+                if (screenfull.isEnabled) {
+                    screenfull.request();
+                }
+                defaultView.style.display = 'none';
+                clockView.style.display = 'flex';
+            } else {
+                if (screenfull.isEnabled) {
+                    screenfull.exit();
+                }
+                defaultView.style.display = 'flex';
+                clockView.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('orientationchange', handleOrientation);
+    </script>
+</body>
+</html>
