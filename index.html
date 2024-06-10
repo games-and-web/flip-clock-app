@@ -1,4 +1,5 @@
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,6 +24,10 @@
         }
         .clock-view {
             display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
         .slider-container {
             display: flex;
@@ -32,19 +37,60 @@
             margin-left: 10px;
         }
         .flip-clock {
-            font-size: 6rem;
+            font-size: 80vmin;
             display: flex;
+            flex-direction: row;
         }
-        .flip-clock div {
-            margin: 0 10px;
+        .flip-clock > div {
+            position: relative;
+            width: 1em;
+            height: 1.2em;
+            perspective: 1000px;
         }
-        @keyframes flip {
+        .flip-clock > div > div {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            backface-visibility: hidden;
+            transform-style: preserve-3d;
+            transform-origin: bottom;
+        }
+        .flip-clock > div .flip-top, .flip-clock > div .flip-bottom {
+            background: #000;
+            color: #fff;
+            text-align: center;
+            line-height: 1.2em;
+            font-size: 1em;
+            border-radius: 0.1em;
+        }
+        .flip-clock > div .flip-top {
+            z-index: 2;
+        }
+        .flip-clock > div .flip-bottom {
+            transform: rotateX(90deg);
+            z-index: 1;
+        }
+        .flip-clock > div.flip .flip-top {
+            animation: flip-top 0.5s ease-in-out forwards;
+        }
+        .flip-clock > div.flip .flip-bottom {
+            animation: flip-bottom 0.5s 0.5s ease-in-out forwards;
+        }
+        @keyframes flip-top {
             0% { transform: rotateX(0); }
-            50% { transform: rotateX(180deg); }
+            100% { transform: rotateX(-90deg); }
+        }
+        @keyframes flip-bottom {
+            0% { transform: rotateX(90deg); }
             100% { transform: rotateX(0); }
         }
-        .flip {
-            animation: flip 1s infinite;
+        .ampm {
+            font-size: 10vmin;
+            position: absolute;
+            bottom: 10%;
+            right: 5%;
         }
     </style>
 </head>
@@ -57,18 +103,23 @@
         </div>
     </div>
     <div class="clock-view">
-        <div class="flip-clock">
-            <div id="hours">00</div>:<div id="minutes">00</div> <div id="ampm">AM</div>
+        <div class="flip-clock" id="flip-clock">
+            <div><div class="flip-top">0</div><div class="flip-bottom">0</div></div>
+            <div><div class="flip-top">0</div><div class="flip-bottom">0</div></div>
+            <div>:</div>
+            <div><div class="flip-top">0</div><div class="flip-bottom">0</div></div>
+            <div><div class="flip-top">0</div><div class="flip-bottom">0</div></div>
         </div>
+        <div class="ampm" id="ampm">AM</div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/screenfull.js/5.1.0/screenfull.min.js"></script>
     <script>
         let brightnessSlider = document.getElementById('brightness-slider');
         let defaultView = document.querySelector('.default-view');
         let clockView = document.querySelector('.clock-view');
-        let hoursDiv = document.getElementById('hours');
-        let minutesDiv = document.getElementById('minutes');
+        let flipClock = document.getElementById('flip-clock');
         let ampmDiv = document.getElementById('ampm');
+        let lastTime = { hours: '', minutes: '', ampm: '' };
 
         brightnessSlider.addEventListener('input', function() {
             let brightnessValue = brightnessSlider.value;
@@ -82,20 +133,62 @@
             let ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12;
             hours = hours ? hours : 12; 
-            minutes = minutes < 10 ? '0' + minutes : minutes;
-            hoursDiv.textContent = hours;
-            minutesDiv.textContent = minutes;
-            ampmDiv.textContent = ampm;
+            let hourStr = hours < 10 ? '0' + hours : '' + hours;
+            let minuteStr = minutes < 10 ? '0' + minutes : '' + minutes;
+
+            if (lastTime.hours !== hourStr) {
+                updateFlip(flipClock.children[0], hourStr[0]);
+                updateFlip(flipClock.children[1], hourStr[1]);
+                lastTime.hours = hourStr;
+            }
+            if (lastTime.minutes !== minuteStr) {
+                updateFlip(flipClock.children[3], minuteStr[0]);
+                updateFlip(flipClock.children[4], minuteStr[1]);
+                lastTime.minutes = minuteStr;
+            }
+            if (lastTime.ampm !== ampm) {
+                ampmDiv.textContent = ampm;
+                lastTime.ampm = ampm;
+            }
+        }
+
+        function updateFlip(flipContainer, newDigit) {
+            const top = flipContainer.querySelector('.flip-top');
+            const bottom = flipContainer.querySelector('.flip-bottom');
+            const currentDigit = top.textContent;
+            if (currentDigit === newDigit) return;
+
+            top.textContent = newDigit;
+            bottom.textContent = currentDigit;
+
+            flipContainer.classList.remove('flip');
+            void flipContainer.offsetWidth; // trigger reflow
+            flipContainer.classList.add('flip');
         }
 
         setInterval(updateClock, 1000);
         updateClock();
 
         function handleOrientationChange() {
-            if (window.matchMedia("(orientation: landscape)").matches) {o
+            if (window.matchMedia("(orientation: landscape)").matches) {
                 // Landscape mode
                 if (screenfull.isEnabled) {
                     screenfull.request();
                 }
                 defaultView.style.display = 'none';
                 clockView.style.display = 'flex';
+            } else {
+                // Portrait mode
+                if (screenfull.isEnabled) {
+                    screenfull.exit();
+                }
+                defaultView.style.display = 'flex';
+                clockView.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('orientationchange', handleOrientationChange);
+        window.addEventListener('load', handleOrientationChange);
+    </script>
+</body>
+</html>
