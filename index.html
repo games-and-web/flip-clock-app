@@ -70,7 +70,7 @@
         let hoursDiv = document.getElementById('hours');
         let minutesDiv = document.getElementById('minutes');
         let ampmDiv = document.getElementById('ampm');
-        
+
         brightnessSlider.addEventListener('input', function() {
             let brightnessValue = brightnessSlider.value;
             document.body.style.color = `rgb(${brightnessValue}, ${brightnessValue}, ${brightnessValue})`;
@@ -92,14 +92,16 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        function handleOrientation(event) {
-            if (window.screen.orientation.angle === 90 || window.screen.orientation.angle === -90) {
+        function handleOrientationChange() {
+            if (window.matchMedia("(orientation: landscape)").matches) {
+                // Landscape mode
                 if (screenfull.isEnabled) {
                     screenfull.request();
                 }
                 defaultView.style.display = 'none';
                 clockView.style.display = 'flex';
             } else {
+                // Portrait mode
                 if (screenfull.isEnabled) {
                     screenfull.exit();
                 }
@@ -108,7 +110,8 @@
             }
         }
 
-        window.addEventListener('orientationchange', handleOrientation);
+        window.addEventListener('orientationchange', handleOrientationChange);
+        window.addEventListener('load', handleOrientationChange);
     </script>
 </body>
 </html>
